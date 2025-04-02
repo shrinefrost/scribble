@@ -2,106 +2,62 @@ package src.client;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.sql.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class LoginScreen extends JFrame {
     private JTextField usernameField;
-    private JPasswordField passwordField;
-    private JButton loginButton, registerButton;
-    
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/ScribbleGame";
-    private static final String DB_USER = "root";  // Change if needed
-    private static final String DB_PASS = "Suraj2#pandey";      // Change if needed
+    private JTextField serverAddressField;
 
     public LoginScreen() {
         setTitle("Scribble Game - Login");
         setSize(400, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridLayout(4, 2));
+        setLayout(new GridLayout(4, 1, 10, 10));
 
-        JLabel userLabel = new JLabel("Username:");
-        JLabel passLabel = new JLabel("Password:");
-        usernameField = new JTextField();
-        passwordField = new JPasswordField();
+        JLabel titleLabel = new JLabel("🎨 Welcome to Scribble Game!", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        add(titleLabel);
 
-        loginButton = new JButton("Login");
-        registerButton = new JButton("Register");
+        // Username input
+        JPanel userPanel = new JPanel();
+        userPanel.add(new JLabel("Username:"));
+        usernameField = new JTextField(15);
+        userPanel.add(usernameField);
+        add(userPanel);
 
-        add(userLabel);
-        add(usernameField);
-        add(passLabel);
-        add(passwordField);
-        add(new JLabel());  // Empty cell for spacing
+        // Server Address input
+        JPanel serverPanel = new JPanel();
+        serverPanel.add(new JLabel("Server IP:"));
+        serverAddressField = new JTextField("localhost", 15);
+        serverPanel.add(serverAddressField);
+        add(serverPanel);
+
+        // Login button
+        JButton loginButton = new JButton("Join Game");
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText().trim();
+                String serverAddress = serverAddressField.getText().trim();
+
+                if (username.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Please enter a username!");
+                    return;
+                }
+
+                // Launch GameWindow with user details
+                new GameWindow(username, serverAddress);
+                dispose(); // Close login window
+            }
+        });
         add(loginButton);
-        add(registerButton);
 
-        /** 🟢 Login Button Click */
-        loginButton.addActionListener(e -> handleLogin());
-
-        /** 🟢 Register Button Click */
-        registerButton.addActionListener(e -> handleRegister());
-
+        setLocationRelativeTo(null); // Center window
         setVisible(true);
     }
 
-    /** ✅ Handles Login */
-    private void handleLogin() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-
-        if (validateUser(username, password)) {
-            JOptionPane.showMessageDialog(this, "✅ Login Successful!");
-            this.dispose();
-            new GameWindow(username, "localhost"); // Connect to game
-        } else {
-            JOptionPane.showMessageDialog(this, "❌ Invalid Credentials. Try again!");
-        }
-    }
-
-    /** ✅ Handles Registration */
-    private void handleRegister() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-
-        if (registerUser(username, password)) {
-            JOptionPane.showMessageDialog(this, "✅ Registration Successful! Please login.");
-        } else {
-            JOptionPane.showMessageDialog(this, "❌ Username already exists.");
-        }
-    }
-
-    /** ✅ Validate User Login */
-    private boolean validateUser(String username, String password) {
-        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next();  // If a user exists, return true
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    /** ✅ Register New User */
-    private boolean registerUser(String username, String password) {
-        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
-    /** 🔹 Main Method to Start the Login Screen */
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(LoginScreen::new);
+        new LoginScreen();
     }
 }
